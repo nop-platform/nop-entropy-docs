@@ -12,22 +12,37 @@ jobs:
   deploy-docs-to-community:
     runs-on: ubuntu-latest
     env:
-      NOP_SITE_PRIVATE_KEY: ${{ secrets.GITEE_PRIVATE_KEY }}
+      NOP_SITE_REPO: nop-platform/nop-platform.gitee.io
     steps:
       - name: Create temp dirs
         run: mkdir project-docs nop-site
-      - name: Copy SSH key
-        run: mkdir ~/.ssh && echo $NOP_SITE_PRIVATE_KEY > ~/.ssh/id_rsa_nop
-      - name: Check out site files
-        run: |
-          cd nop-site
-          git init
-          git remote add origin git@gitee.com:nop-platform/nop-platform.git
-          git fetch
-          git checkout master
-          ls -al
-          cd ..
-          ls -al
       - uses: actions/checkout@v3
         with:
           path: project-docs
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ env.NOP_SITE_REPO }}
+          persist-credentials: false
+          path: nop-site
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 14.15.3
+      - run: cd project-docs && npm i && npm run deploy && cd ..
+      - name: Copy files
+        run: |
+          rm -rf nop-site/projects/nop-entropy/docs
+          mv project-docs/.knosys/sites/default/public nop-site/projects/nop-entropy/docs
+      - name: Commit changes
+        run: |
+          cd nop-site
+          git config --local user.email "nopentropy@gmail.com"
+          git config --local user.name "Nop Assistant"
+          git add .
+          git commit -m "chore: deploy docs of project Nop Entropy via GitHub Actions"
+      - uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ env.NOP_SITE_REPO }}
+          directory: nop-site
+          force: true
