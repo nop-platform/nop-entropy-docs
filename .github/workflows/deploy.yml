@@ -32,7 +32,7 @@ jobs:
       - name: Copy files
         run: |
           rm -rf nop-site/projects/nop-entropy/docs
-          mv project-docs/.knosys/sites/default/public nop-site/projects/nop-entropy/docs
+          mv project-docs/.knosys/sites/default/public/projects/nop-entropy/docs nop-site/projects/nop-entropy/docs
       - name: Commit changes
         run: |
           cd nop-site
