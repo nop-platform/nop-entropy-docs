@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - docs/**
+      - src/**
   workflow_dispatch:
 
 jobs:
@@ -17,8 +17,17 @@ jobs:
       - name: Create temp dirs
         run: mkdir project-docs nop-site
       - name: Copy SSH key
+        run: mkdir ~/.ssh && echo $NOP_SITE_PRIVATE_KEY > ~/.ssh/id_rsa_nop
+      - name: Check out site files
         run: |
-          mkdir ~/.ssh
-          touch ~/.ssh/id_rsa_nop
-          echo $NOP_SITE_PRIVATE_KEY > ~/.ssh/id_rsa_nop
-          cat ~/.ssh/id_rsa_nop
+          cd nop-site
+          git init
+          git remote add origin git@gitee.com:nop-platform/nop-platform.git
+          git fetch
+          git checkout master
+          ls -al
+          cd ..
+          ls -al
+      - uses: actions/checkout@v3
+        with:
+          path: project-docs
