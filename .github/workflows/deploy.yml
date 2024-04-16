@@ -15,27 +15,34 @@ jobs:
       NOP_SITE_REPO: nop-platform/nop-platform.gitee.io
     steps:
       - name: Create temp dirs
-        run: mkdir project-docs nop-site
+        run: mkdir project-docs nop-site-src nop-site-dist
       - uses: actions/checkout@v3
         with:
           path: project-docs
       - uses: actions/checkout@v3
         with:
+          repository: nop-platform/site
+          path: nop-site-src
+      - uses: actions/checkout@v3
+        with:
           repository: ${{ env.NOP_SITE_REPO }}
           persist-credentials: false
-          path: nop-site
+          path: nop-site-dist
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 14.15.3
-      - run: cd project-docs && npm i && npm run deploy && cd ..
+      - run: |
+          rm -rf project-docs/.knosys/sites/default/_config.yml
+          cp nop-site-src/.knosys/sites/default/_config.yml project-docs/.knosys/sites/default/_config.yml
+          cd project-docs && npm i && npm run deploy && cd ..
       - name: Copy files
         run: |
-          rm -rf nop-site/projects/nop-entropy/docs
-          mv project-docs/.knosys/sites/default/public/projects/nop-entropy/docs nop-site/projects/nop-entropy/docs
+          rm -rf nop-site-dist/projects/nop-entropy/docs
+          mv project-docs/.knosys/sites/default/public/projects/nop-entropy/docs nop-site-dist/projects/nop-entropy/docs
       - name: Commit changes
         run: |
-          cd nop-site
+          cd nop-site-dist
           git config --local user.email "nopentropy@gmail.com"
           git config --local user.name "Nop Assistant"
           git add .
@@ -44,5 +51,5 @@ jobs:
         with:
           github_token: ${{ secrets.GH_TOKEN }}
           repository: ${{ env.NOP_SITE_REPO }}
-          directory: nop-site
+          directory: nop-site-dist
           force: true
