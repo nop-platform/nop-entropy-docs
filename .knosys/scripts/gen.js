@@ -1,4 +1,4 @@
-const { generateProjectDocs } = require('@nop-community/hexo-theme-site');
+const { generateProjectDocs } = require('./helper');
 
 module.exports = {
   execute: (site = 'default', sourceKey) => generateProjectDocs(site, { sourceKey }),

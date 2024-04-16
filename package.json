@@ -24,6 +24,8 @@
   "scripts": {
     "build": "node .knosys/scripts gen",
     "start": "node .knosys/scripts serve",
-    "prestart": "npm run build"
+    "prestart": "npm run build",
+    "deploy": "node .knosys/scripts deploy",
+    "predeploy": "npm run build"
   }
 }
