@@ -42,7 +42,7 @@ jobs:
           git commit -m "chore: deploy docs of project Nop Entropy via GitHub Actions"
       - uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GH_TOKEN }}
           repository: ${{ env.NOP_SITE_REPO }}
           directory: nop-site
           force: true
