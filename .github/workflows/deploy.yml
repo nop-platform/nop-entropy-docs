@@ -18,7 +18,7 @@ jobs:
         run: mkdir project-docs nop-site
       - name: Copy SSH key
         run: |
-          ls -al ~/.ssh
+          mkdir ~/.ssh
           touch ~/.ssh/id_rsa_nop
           echo $NOP_SITE_PRIVATE_KEY > ~/.ssh/id_rsa_nop
           cat ~/.ssh/id_rsa_nop
