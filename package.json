@@ -1,0 +1,29 @@
+{
+  "name": "@nop/nop-entropy-docs",
+  "version": "0.0.0",
+  "private": true,
+  "main": ".knosys/scripts/index.js",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "hexo": {
+    "version": "6.3.0"
+  },
+  "dependencies": {
+    "@nop-community/hexo-theme-site": "0.0.4",
+    "hexo": "^6.3.0",
+    "hexo-renderer-coffeescript": "^0.2.0",
+    "hexo-renderer-ejs": "^2.0.0",
+    "hexo-renderer-marked": "^6.0.0",
+    "hexo-renderer-sass": "^0.4.0",
+    "hexo-server": "^3.0.0"
+  },
+  "devDependencies": {
+    "ksio": "0.0.2"
+  },
+  "scripts": {
+    "build": "node .knosys/scripts gen",
+    "start": "node .knosys/scripts serve",
+    "prestart": "npm run build"
+  }
+}

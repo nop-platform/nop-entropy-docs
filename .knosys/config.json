@@ -1,0 +1,15 @@
+{
+  "command": "./.knosys/scripts",
+  "site": {
+    "default": {
+      "generator": "hexo",
+      "data": {
+        "project-nop-entropy": "./src"
+      },
+      "git": {
+        "url": "git@gitee.com:nop-platform/nop-platform.git",
+        "branch": "master"
+      }
+    }
+  }
+}
