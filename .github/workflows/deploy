@@ -1,0 +1,24 @@
+name: Deploy project docs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - docs/**
+  workflow_dispatch:
+
+jobs:
+  deploy-docs-to-community:
+    runs-on: ubuntu-latest
+    env:
+      NOP_SITE_PRIVATE_KEY: ${{ secrets.GITEE_PRIVATE_KEY }}
+    steps:
+      - name: Create temp dirs
+        run: mkdir project-docs nop-site
+      - name: Copy SSH key
+        run: |
+          ls -al ~/.ssh
+          touch ~/.ssh/id_rsa_nop
+          echo $NOP_SITE_PRIVATE_KEY > ~/.ssh/id_rsa_nop
+          cat ~/.ssh/id_rsa_nop
