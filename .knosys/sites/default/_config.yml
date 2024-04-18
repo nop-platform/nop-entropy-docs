@@ -134,6 +134,7 @@ ksio:
         extends: ksio/doc
     page:
       - scope:
+          path: ""
           type: posts
         values:
           ksio_asset_css:
@@ -145,10 +146,12 @@ ksio:
             - javascripts/ksio/vendors/jquery.lazyload
             - javascripts/ksio/initializers/lazyload
       - scope:
+          path: ""
           type: knosys
         values:
           layout: _nop/layouts/doc
           ksio_asset_css:
+            - local/syntax-highlighting
             - stylesheets/pages/post
             - stylesheets/pages/doc
           ksio_asset_js:

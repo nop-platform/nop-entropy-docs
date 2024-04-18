@@ -20,7 +20,7 @@ function copyProjectDocTheme(site) {
   const pkg = readData(`${rootPath}/package.json`);
   const themeDistPath = `${siteSrcPath}/themes/nop-project`;
 
-  ensureDirExists(themeDistPath);
+  ensureDirExists(themeDistPath, true);
   copyFileDeeply(`${rootPath}/node_modules/@nop-community/hexo-theme-site`, themeDistPath, ['README.md', 'CHANGELOG.md', 'package.json', 'index.js']);
 
   saveData(`${siteSrcPath}/package.json`, { name: `${pkg.name}-site`, ...pick(pkg, ['version', 'private', 'hexo', 'dependencies']) });
