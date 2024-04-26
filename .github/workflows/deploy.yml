@@ -12,10 +12,11 @@ jobs:
   deploy-docs-to-community:
     runs-on: ubuntu-latest
     env:
-      NOP_SITE_REPO: nop-platform/nop-platform.gitee.io
+      NOP_SITE_REPO_GITHUB: nop-platform/nop-platform.github.io
+      NOP_SITE_REPO_GITEE: nop-platform/nop-platform.gitee.io
     steps:
       - name: Create temp dirs
-        run: mkdir project-docs nop-site-src nop-site-dist
+        run: mkdir project-docs nop-site-src nop-site-github nop-site-gitee
       - uses: actions/checkout@v3
         with:
           path: project-docs
@@ -25,9 +26,14 @@ jobs:
           path: nop-site-src
       - uses: actions/checkout@v3
         with:
-          repository: ${{ env.NOP_SITE_REPO }}
+          repository: ${{ env.NOP_SITE_REPO_GITHUB }}
           persist-credentials: false
-          path: nop-site-dist
+          path: nop-site-github
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ env.NOP_SITE_REPO_GITEE }}
+          persist-credentials: false
+          path: nop-site-gitee
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
@@ -38,18 +44,36 @@ jobs:
           cd project-docs && npm i && npm run deploy && cd ..
       - name: Copy files
         run: |
-          rm -rf nop-site-dist/projects/nop-entropy/docs
-          mv project-docs/.knosys/sites/default/public/projects/nop-entropy/docs nop-site-dist/projects/nop-entropy/docs
-      - name: Commit changes
+          rm -rf nop-site-github/projects/nop-entropy/docs nop-site-gitee/projects/nop-entropy/docs
+          cp -rp project-docs/.knosys/sites/default/public/projects/nop-entropy/docs nop-site-github/projects/nop-entropy/docs
+          cp -rp project-docs/.knosys/sites/default/public/projects/nop-entropy/docs nop-site-gitee/projects/nop-entropy/docs
+      - name: Commit changes for GitHub Pages
         run: |
-          cd nop-site-dist
+          cd nop-site-github
           git config --local user.email "nopentropy@gmail.com"
           git config --local user.name "Nop Assistant"
           git add .
           git commit -m "chore: deploy docs of project Nop Entropy via GitHub Actions"
-      - uses: ad-m/github-push-action@master
+          cd ..
+      - name: Push changes for GitHub Pages
+        uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GH_TOKEN }}
-          repository: ${{ env.NOP_SITE_REPO }}
-          directory: nop-site-dist
+          repository: ${{ env.NOP_SITE_REPO_GITHUB }}
+          directory: nop-site-github
+          force: true
+      - name: Commit changes for Gitee Pages
+        run: |
+          cd nop-site-gitee
+          git config --local user.email "nopentropy@gmail.com"
+          git config --local user.name "Nop Assistant"
+          git add .
+          git commit -m "chore: deploy docs of project Nop Entropy via GitHub Actions"
+          cd ..
+      - name: Push changes for Gitee Pages
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GH_TOKEN }}
+          repository: ${{ env.NOP_SITE_REPO_GITEE }}
+          directory: nop-site-gitee
           force: true
