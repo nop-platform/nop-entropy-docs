@@ -5,7 +5,7 @@
 * 配置`nop.auth.enable-action-auth=true`后启用操作权限。字段级别权限也利用这一开关
 * 配置`nop.auth.enable-data-auth=true`后启用数据权限。
 * 配置`nop.auth.use-data-auth-table=true`启用数据权限配置表`NopAuthRoleDataAuth`，数据库中配置的数据权限规则可以和配置文件中的权限规则合并
-* 缺省会加载/nop/main/auth/main.action-auth.xml 静态权限配置文件，可以通过nop.auth.site-map.static-config-path定制为不同的值
+* 缺省会加载/nop/main/auth/app.action-auth.xml 静态权限配置文件，可以通过nop.auth.site-map.static-config-path定制为不同的值
 * 在main.action-auth.xml可以通过`x:extends`来引入已有的权限配置文件。
 * 如果配置`nop.auth.skip-check-for-admin=true`,则对于具有admin角色或者`nop-admin`的用户会跳过操作权限检查，缺省为true。
 * 配置`nop.auth.service-public=true`可以开放后台服务，无需登录即可访问后台服务函数
@@ -73,7 +73,7 @@ NopAuthResource按照siteId进行组织，缺省使用siteId=MAIN作为主站点
 比如siteId=mobile可以用于移动端菜单，而siteId=MAIN用于Web端等。
 
 ### 引入其他模块的菜单
-新建一个文件`/nop/main/auth/main.action-auth.xml`，在其中可以通过`x:extends`引入其他模块的菜单。
+新建一个文件`/nop/main/auth/app.action-auth.xml`，在其中可以通过`x:extends`引入其他模块的菜单。
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -83,6 +83,10 @@ NopAuthResource按照siteId进行组织，缺省使用siteId=MAIN作为主站点
 ```
 
 * 通过`nop.auth.site-map.static-config-path`配置指定其他的`action-auth.xml`文件，缺省会使用`main.action.xml`
+
+* SiteMapProviderImpl中缓存了siteId到SiteMapBean的映射。缓存的SiteMapBean是该站点的所有菜单项。另外有一个SiteMapData缓存，它包含菜单项对应的角色id集合等信息。
+当用户登录后获取菜单时，通过SiteMapProviderImpl.filterAllowedMenu函数结合SiteMap缓存和SiteCacheData缓存，以及传入的用户角色集合过滤掉用户没有权限的菜单项, 返回一个针对该用户的SiteMapBean。
+* Nop平台中一个用户可以具有多个角色。
 
 ### 后台Action
 
@@ -139,6 +143,9 @@ auth可以配置`skipWhenNoAuth=true`，它表示当不具有访问权限时自�
 
 所有的用户都自动具有角色user，所以如果配置`@Auth(roles="user")`则表示允许所有登录用户访问。这种方式与publicAccess的区别在于，如果标记为
 publicAccess的方法不会检查当前访问用户是否已经登录。
+
+* 注意，缺省情况下`/r/`和`/graphql`链接本身需要登录才能访问，所以还需要额外配置`nop.auth.service-public=true`，这样所有的服务路径都允许匿名访问，此时必须开启权限认证，依靠IActionAuthChecker来保证安全性。
+具体参见auth-service.beans.xml中的nopAuthFilterConfig配置。
 
 ## 操作权限检查接口
 
@@ -382,3 +389,17 @@ authObjName对应不同的业务场景，一个业务场景下会存在多个操
 ## 常见问题
 1. 如何区分两个不同的查询
 `NopAuthUser:query`表示允许针对用户的所有查询，而`NopAuthUser:findPage_active`则只对应于`findPage_active`这一个方法。可以在action上通过Auth注解使得方法名对应于指定的permission。否则每个方法名都缺省对应于一个permission名。
+
+2. 如何获取到userId, userName, role等信息
+`IUserContext.get()`可以获取到当前用户上下文。后台服务函数中一般会传递 IServiceContext上下文对象，通过`svcCtx.getUserContext()`也可以获取到用户上下文
+
+```java
+class MyBizModel{
+  @BizQuery
+  public MyObject get(@Name("id") String id, IServiceContext svcCtx){
+     return ...;
+  }
+}
+```
+
+在报表引擎中，可以通过IEvalScope传递参数。svcCtx上的scope对象通过`svcCtx.getEvalScope()`获取，它已经内置了svcCtx这个变量，指向它关联的IServiceContext对象。

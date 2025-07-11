@@ -133,11 +133,97 @@ java -jar nop-cli.jar run-task my.task.xml -if=inputs.json
 读取`inputs.json`文件作为task的输入参数，运行`my.task.xml`逻辑编排模型。
 
 ## 重打包操作
+
 ```
 java -jar nop-cli.jar repackage -i=app -o=my-tool.jar
 ```
 
-repackage指令将根据输入目录下的`_vfs`目录以及`application.yaml`、`bootstrap.yaml`文件，把它们打包到当前`nop-cli.jar`包中，输出一个新的可执行的jar包。
+repackage指令将根据输入目录下的`_vfs`目录以及`application.yaml`、`bootstrap.yaml`文件，把它们打包到当前`nop-cli.jar`
+包中，输出一个新的可执行的jar包。
+
+## 数据库导入导出
+
+```
+java -jar nop-cl.jar export-db test.export-db.xml -o=data
+```
+
+根据`export-db.xml`中的配置，将数据库中的数据导出到data目录下，可以选择导出为csv或者sql格式。导出时可以执行字段重命名，值的变换等操作。可以选择只导出部分字段。
+
+```
+java -jar nop-cl.jar import-db test.import-db.xml -i=data
+```
+
+从data目录下导入数据到指定数据库中，导入时可以按照keyFields去重，并可以选择是否允许更新，还是只允许插入。导入时可以进行字段重命名和值的变换。可以选择只导入部分字段。
+
+可以通过指定`-s`参数来保存导入状态。
+
+```
+java -jar nop-cl.jar import-db test.import-db.xml -i=data -s=import-status.json
+```
+
+## convert格式转换
+
+在 DSL 模型的 XML/JSON/YAML/XLSX 格式间进行转换
+
+### 命令格式
+
+```bash
+java -jar nop-cli.jar transform <inputFile>
+    [-o|--output <outputFile>]
+```
+
+### 参数说明
+
+| 参数             | 描述                                             |
+|----------------|------------------------------------------------|
+| `<inputFile>`  | 输入文件（必须指定明确的文件类型，比如app.orm.xml, app.orm.xlsx等） |
+| `-o, --output` | 输出文件（波希指定明确的文件类型）                              |
+
+具体实现是使用DocumentConvertManager。
+
+1. 通过convert.xml注册文件注册各种格式之间的转换逻辑
+2. register-model.xml中注册的DSL各种格式之间可以自动双向转换
+3. 如果注册了 A->B和B->C，则可以自动支持A->C的转换（仅支持一级推导）
+
+### 使用示例
+
+ ```bash
+ # XML → XLSX
+ java -jar nop-cli.jar convert app.orm.xml  -o app.orm.xlsx
+
+ # JSON → YAML
+ java -jar nop-cli.jar convert app.orm.json -o app.orm.yaml
+ ```
+
+## 根据`page.yaml`文件生成页面json文件
+
+```
+java -jar nop-cli.jar run scripts/render-pages.xrun -i="{moduleId:'app/demo'}" -o=target
+```
+
+run指令可以用于执行xpl脚本文件，`render-pages.xrun`脚本中调用PageProvider来生成页面json文件，`-i`参数指定输入参数，`-o`
+参数指定输出目录。
+
+```xml
+<!-- render-pages.xrun文件的内容-->
+<c:script>
+  import io.nop.web.page.PageProvider;
+  import java.io.File;
+
+  const pageProvider = new PageProvider();
+  const options = {
+  moduleId: moduleId,
+  resolveI18n: true,
+  useResolver: true,
+  threadCount: 4
+  };
+
+  pageProvider.renderPagesTo(options, outputDir);
+</c:script>
+```
+
+renderPagesTo函数会遍历`_vfs/{moduleId}/pages/*/*.page.yaml`文件，并执行模板渲染。在`page.yaml`中可以通过`<web:GenPage>`
+等标签来引入View模型。
 
 ## 常见问题
 
@@ -147,7 +233,8 @@ repackage指令将根据输入目录下的`_vfs`目录以及`application.yaml`�
 java -Dquarkus.config.locations=application.yaml -jar nop-cli.jar gen-file my.orm.json -t=/nop/orm/imp/orm.imp.xml
 ```
 
-缺省配置了`quarkus.log.level=INFO`，以及`quarkus.log.category."io.nop".level=ERROR`，可以通过外部的application.yaml来覆盖缺省的quarkus配置。
+缺省配置了`quarkus.log.level=INFO`，以及`quarkus.log.category."io.nop".level=ERROR`
+，可以通过外部的application.yaml来覆盖缺省的quarkus配置。
 
 2. 如何使用外部的application.yaml配置文件
 

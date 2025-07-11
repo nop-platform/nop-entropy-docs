@@ -112,8 +112,14 @@ test为自定义前缀信息。 a.f()为待查看的表达式源码, `=> 1`表�
 
 ### 3. 在xpl模板语言中
 
-```
+```xml
 <c:log info="${data}" />
+```
+
+在xpl标签上标注`xpl:dump="true"`会打印出解析得到的AST抽象语法树。对于宏标签会得到宏处理之后的结果。
+
+```xml
+<my:MyTag xpl:dump="true" />
 ```
 
 ## 模型dump
@@ -158,6 +164,12 @@ Quarkus框架内置了`graphql-ui`调试工具。以调试模式启动应用之�
 
 这是Quarkus框架报错，可以将quarkus.log.level设置为DEBUG。
 后端服务需要引入
+
+### 3. 前端界面没有显示，报错说某些js Not Found
+Nop平台内置的前端是通过nop-chaos项目打包得到，打包后的js存放在nop-web-site模块中，使用了gz压缩，实际文件名是`amis-xxx.js.gz`这种形式。
+运行时必须由Filter将对js文件的访问重定向为对js.gz文件的访问。具体实现是在ZipContentEncodingFilterRegistrar类中。这个类使用了Quarkus的IoC容器来实现初始化。
+Quarkus的IoC容器不使用运行时类扫描，它会在编译期生成代码，并且把所有的类信息统一存放在jandex索引中。因此，必须先通过mvn install来执行quarkus的maven插件来生成代码，
+直接在IDE中启动QuarkusDemoMain会导致无法自动发现ZipContentEncodingFilterRegistrar类。
 
 ## 后端
 
@@ -209,6 +221,8 @@ nop-config模块负责从多个配置来源收集配置信息，并按照优先�
 
 `/p/DevDoc__graphql`
 返回graphql定义
+
+如果引入了nop-rpc-grpc模块，还可以通过`/p/DevDoc__proto`查看以gRPC格式暴露的服务说明
 
 ### 6. 调试模型合并过程
 
